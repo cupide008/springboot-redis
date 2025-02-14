@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品展示页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        h1 {
+            text-align: center;
+            background-color: #4caf50;
+            color: white;
+            padding: 15px 0;
+            margin: 0;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>商品列表</h1>
+    <div class="loading" id="loading">加载中...</div>
+    <div class="error" id="error" style="display: none;"></div>
+    <table id="productTable" style="display: none;">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>商品名</th>
+            <th>数量</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- 商品数据将动态插入到这里 -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // 模拟从后端获取商品数据
+    async function fetchProducts() {
+        try {
+            const response = await fetch('/shop/list');
+            if (!response.ok) {
+                throw new Error('网络响应错误，请稍后再试！');
+            }
+            const result = await response.json();
+            if (result.success && Array.isArray(result.data)) {
+                return result.data; // 假设返回的是一个数组 [{id: 1, name: '商品1', number: '10'}, ...]
+            } else {
+                throw new Error('数据格式不正确');
+            }
+        } catch (error) {
+            console.error('获取商品数据失败:', error);
+            return null;
+        }
+    }
+
+    // 渲染商品数据到表格
+    function renderProducts(products) {
+        const tableBody = document.querySelector('#productTable tbody');
+        tableBody.innerHTML = ''; // 清空表格内容
+
+        products.forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.number}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        // 显示表格并隐藏加载提示
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'none';
+        document.getElementById('productTable').style.display = 'table';
+    }
+
+    // 错误处理
+    function showError(message) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').innerText = message;
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('productTable').style.display = 'none';
+    }
+
+    // 页面加载时调用
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchProducts().then(products => {
+            if (products) {
+                renderProducts(products);
+            } else {
+                showError('无法加载商品数据，请检查网络连接或服务器状态！');
+            }
+        }).catch(() => {
+            showError('获取商品数据失败，请稍后再试！');
+        });
+    });
+</script>
+
+</body>
+</html>
